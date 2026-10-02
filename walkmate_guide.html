@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WalkMate - Complete Architecture, Concepts & Developer Guide</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm 18mm 16mm;
+      @bottom-right {
+        content: counter(page);
+        font-family: 'Outfit', sans-serif;
+        font-size: 9pt;
+        color: #6B7A70;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1E2822;
+      background: #FFFFFF;
+      line-height: 1.55;
+      font-size: 10pt;
+    }
+
+    /* Cover / Hero Header */
+    .hero-banner {
+      background: linear-gradient(135deg, #2A4736 0%, #3E664F 50%, #5E8B70 100%);
+      color: white;
+      padding: 32px 28px;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      page-break-after: avoid;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: rgba(233, 241, 236, 0.2);
+      color: #D3E4D9;
+      font-size: 8.5pt;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-size: 24pt;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .hero-subtitle {
+      font-size: 11pt;
+      color: #E9F1EC;
+      max-width: 600px;
+      line-height: 1.4;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 18px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 8.5pt;
+      color: #D3E4D9;
+    }
+
+    h2 {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #2A4736;
+      border-bottom: 2px solid #E9F1EC;
+      padding-bottom: 6px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      page-break-after: avoid;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #3E664F;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-bottom: 10px;
+      color: #2D3730;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    li {
+      margin-bottom: 5px;
+      color: #2D3730;
+    }
+
+    /* Concept Highlight Box */
+    .callout {
+      background: #F4F7F5;
+      border-left: 4px solid #3E664F;
+      border-radius: 0 12px 12px 0;
+      padding: 12px 16px;
+      margin: 14px 0;
+      page-break-inside: avoid;
+    }
+
+    .callout-title {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: #2A4736;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .callout p {
+      margin: 0;
+      font-size: 9pt;
+      color: #4A5850;
+    }
+
+    /* Math Box */
+    .math-card {
+      background: #FAF8F5;
+      border: 1px solid #EAE5DE;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9pt;
+      color: #2A3830;
+      page-break-inside: avoid;
+    }
+
+    .math-formula {
+      font-weight: 600;
+      color: #B85D36;
+      font-size: 10pt;
+      margin-bottom: 6px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 8.8pt;
+      page-break-inside: avoid;
+    }
+
+    th {
+      background: #E9F1EC;
+      color: #2A4736;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 10px;
+      border: 1px solid #D5E2D9;
+    }
+
+    td {
+      padding: 7px 10px;
+      border: 1px solid #E5EDE7;
+      color: #2D3730;
+    }
+
+    tr:nth-child(even) td {
+      background: #F9FAF8;
+    }
+
+    /* Badge & Chips */
+    .badge {
+      display: inline-block;
+      font-size: 8pt;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #E9F1EC;
+      color: #3E664F;
+    }
+
+    .badge-privacy {
+      background: #E5F4EC;
+      color: #2D6A4F;
+      border: 1px solid #B7E4C7;
+    }
+
+    /* Code Snippets */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5pt;
+      background: #F1F4F2;
+      color: #2A4736;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 10px 0;
+      page-break-inside: avoid;
+    }
+
+    .mini-card {
+      background: #FFFFFF;
+      border: 1px solid #E5EDE7;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .mini-card h4 {
+      font-size: 9.5pt;
+      color: #3E664F;
+      margin-bottom: 4px;
+    }
+
+    .mini-card p {
+      font-size: 8.5pt;
+      color: #55665D;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO SECTION -->
+  <div class="hero-banner">
+    <div class="hero-tag">🌱 Complete Architecture & Knowledge Guide</div>
+    <h1 class="hero-title">WalkMate Architecture & Core Concepts</h1>
+    <p class="hero-subtitle">
+      A comprehensive deep-dive into how WalkMate was conceived, architected, and built—from real-time GPS trigonometry and MET exercise science to Japanese editorial Polaroid memory cards.
+    </p>
+    <div class="hero-meta">
+      <span><strong>Platform:</strong> Flutter (Android)</span>
+      <span><strong>Language:</strong> Dart</span>
+      <span><strong>Architecture:</strong> Service-Oriented Reactive MVC</span>
+      <span><strong>Privacy:</strong> 100% Zero-Route Storage</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1: THE PHILOSOPHY -->
+  <h2>1. Philosophy: Why WalkMate is Different</h2>
+  <p>
+    Modern fitness applications (such as Strava, Nike Run Club, or Apple Fitness) are built around <strong>competition, public leaderboards, pace pressure, and route bragging</strong>. For everyday mindful walkers, this creates anxiety rather than wellness.
+  </p>
+  <p>
+    <strong>WalkMate was built with a fundamentally opposite paradigm:</strong>
+  </p>
+  <ul>
+    <li><strong>No Destination or Route Required:</strong> You don't need to "plan a track". Step outside your door and take 300 meters or 4 kilometers. Distance is purely cumulative.</li>
+    <li><strong>Absolute Privacy by Architecture:</strong> Most fitness apps secretly upload your breadcrumb GPS route to cloud servers. WalkMate <em>never</em> stores coordinates in memory or on disk. Once a delta is computed, the latitude and longitude are immediately dropped.</li>
+    <li><strong>Calming Botanical Aesthetics:</strong> Instead of high-voltage neon red or aggressive athletic blacks, WalkMate uses Japanese forest bathing (<em>Shinrin-yoku</em>) tones: Sage Green, Oat Sand, and Peach Blossom.</li>
+    <li><strong>Non-Competitive Milestone Cheers:</strong> Every 500 meters, you receive a gentle word of gratitude and body-mind scientific insights instead of a speed comparison.</li>
+  </ul>
+
+  <div class="callout">
+    <div class="callout-title">🔒 The Zero-Route Privacy Guarantee</div>
+    <p>
+      In WalkMate, the GPS stream only exists during the active walk. The app computes:
+      <code>delta = distance(previousLat, previousLng, currentLat, currentLng)</code>.
+      Once <code>cumulativeDistance += delta</code> executes, <code>previousLat/Lng</code> are overwritten. No list of points, GeoJSON, or map polylines are ever constructed or saved.
+    </p>
+  </div>
+
+  <!-- SECTION 2: HOW FLUTTER WORKS -->
+  <h2>2. Flutter Foundations: How the Code Works</h2>
+  <p>
+    To understand WalkMate, you only need to grasp three core concepts of the Flutter framework:
+  </p>
+
+  <div class="grid-2">
+    <div class="mini-card">
+      <h4>1. "Everything is a Widget"</h4>
+      <p>In Flutter, buttons, text, paddings, animations, and entire screens are all <strong>Widgets</strong> nested together in a tree hierarchy. When data changes, Flutter redraws only the specific sub-tree.</p>
+    </div>
+    <div class="mini-card">
+      <h4>2. Stateless vs. Stateful</h4>
+      <p><code>StatelessWidget</code> is static (like a badge or button). <code>StatefulWidget</code> holds dynamic state (like a timer ticking, weight input, or active walk metrics) via <code>setState()</code>.</p>
+    </div>
+  </div>
+
+  <h3>State Management with <code>ChangeNotifier</code></h3>
+  <p>
+    Instead of using heavy, bloated state management libraries, WalkMate uses Flutter's built-in <code>ChangeNotifier</code>.
+    Our <code>TrackingService</code> extends <code>ChangeNotifier</code>. When GPS moves or the 1-second timer ticks, it calls <code>notifyListeners()</code>. The UI screen listens and updates seamlessly at 60 FPS without freezing the main thread.
+  </p>
+
+  <!-- PAGE BREAK FOR SECTION 3 -->
+  <div class="page-break"></div>
+
+  <!-- SECTION 3: FEATURE DEEP-DIVE -->
+  <h2>3. Deep Dive into Every Feature & Concept</h2>
+
+  <!-- 3.1 WEIGHT -->
+  <h3>3.1 One-Time Weight Persistence (StorageService)</h3>
+  <p>
+    <strong>Concept:</strong> Why ask for weight? Energy expenditure in walking is directly proportional to body mass. Moving a 90 kg mass 1 kilometer requires significantly more energy than moving a 55 kg mass.
+  </p>
+  <ul>
+    <li><strong>Package Used:</strong> <code>shared_preferences</code> (Local key-value store using Android's native <code>SharedPreferences</code>).</li>
+    <li><strong>Normalized Storage:</strong> Weight is always stored internally in <strong>kilograms (kg)</strong>. If a user enters <code>154 lbs</code>, the app converts and stores <code>70.0 kg</code>:
+      <br><code>weightKg = displayWeight / 2.20462</code>.</li>
+    <li><strong>Privacy Reassurance:</strong> Data remains in the application's private sandboxed data directory on the Android device. Zero cloud sync.</li>
+  </ul>
+
+  <!-- 3.2 GPS -->
+  <h3>3.2 GPS Tracking & Cumulative Distance Math (TrackingService)</h3>
+  <p>
+    <strong>Concept:</strong> How does temporary GPS tracking work without logging routes?
+  </p>
+  <ul>
+    <li><strong>Package:</strong> <code>geolocator</code> (interfaces with Android's <code>FusedLocationProviderClient</code>).</li>
+    <li><strong>The Distance Filter (Anti-Jitter):</strong> When standing still, GPS coordinates drift naturally by 1–5 meters due to atmospheric interference. If recorded raw, the user would accumulate "ghost distance". WalkMate sets <code>distanceFilter: 3</code> meters and requires accuracy under <code>35m</code> to accept a coordinate.</li>
+    <li><strong>Spherical Trigonometry (Haversine Formula):</strong> The distance between two GPS points on Earth's curved surface is calculated using the spherical law of cosines:</li>
+  </ul>
+
+  <div class="math-card">
+    <div class="math-formula">a = sin²(Δlat/2) + cos(lat1) · cos(lat2) · sin²(Δlon/2)</div>
+    <div class="math-formula">c = 2 · atan2(√a, √(1−a))</div>
+    <div class="math-formula">Distance (meters) = EarthRadius (6,371,000m) · c</div>
+  </div>
+
+  <ul>
+    <li><strong>Speed & Teleport Filter:</strong> If an incoming GPS point implies speed greater than <code>18 km/h</code> (e.g. user got into a car or GPS jumped across cell towers), the delta is ignored to preserve pure walking metrics.</li>
+  </ul>
+
+  <!-- 3.3 CALORIES -->
+  <h3>3.3 MET-Based Calorie Estimation (CalorieService)</h3>
+  <p>
+    <strong>Concept:</strong> Many apps guess calories using generic step counts. WalkMate uses the <strong>Compendium of Physical Activities</strong>, the gold standard in exercise physiology developed by Stanford and the American College of Sports Medicine.
+  </p>
+  <p>
+    <strong>What is a MET?</strong> MET stands for <em>Metabolic Equivalent of Task</em>.
+    <code>1.0 MET</code> is the rate of energy spent sitting quietly at rest (approx. $1\text{ kcal} / \text{kg} / \text{hr}$).
+  </p>
+
+  <div class="math-card">
+    <div class="math-formula">Calories per minute = (MET × 3.5 × Weight_in_kg) / 200</div>
+    <div class="math-formula">Calories per second = Calories_per_minute / 60</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Walking Intensity</th>
+        <th>Speed Range (km/h)</th>
+        <th>MET Value</th>
+        <th>Physical Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Resting / Paused</strong></td>
+        <td>0.0 km/h</td>
+        <td><strong>1.2</strong></td>
+        <td>Resting metabolic state during water break</td>
+      </tr>
+      <tr>
+        <td><strong>Casual Stroll</strong></td>
+        <td>&lt; 2.5 km/h</td>
+        <td><strong>2.0</strong></td>
+        <td>Window shopping, gentle wandering in garden</td>
+      </tr>
+      <tr>
+        <td><strong>Relaxed Walk</strong></td>
+        <td>2.5 – 3.5 km/h</td>
+        <td><strong>2.8</strong></td>
+        <td>Effortless, conversational walking pace</td>
+      </tr>
+      <tr>
+        <td><strong>Moderate Walk</strong></td>
+        <td>3.5 – 4.5 km/h</td>
+        <td><strong>3.3</strong></td>
+        <td>Purposeful stroll, standard walking cadence</td>
+      </tr>
+      <tr>
+        <td><strong>Brisk Walk</strong></td>
+        <td>4.5 – 5.5 km/h</td>
+        <td><strong>3.8</strong></td>
+        <td>Aerobic pace, active arm swing</td>
+      </tr>
+      <tr>
+        <td><strong>Very Brisk / Power</strong></td>
+        <td>5.5 – 6.5 km/h</td>
+        <td><strong>4.3</strong></td>
+        <td>Power walk, deep rhythmic breathing</td>
+      </tr>
+      <tr>
+        <td><strong>Fast / Uphill</strong></td>
+        <td>&gt; 6.5 km/h</td>
+        <td><strong>5.0</strong></td>
+        <td>Hurried stride, maximum walking burn</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PAGE BREAK FOR SECTION 4 -->
+  <div class="page-break"></div>
+
+  <!-- 3.4 MILESTONES -->
+  <h3>3.4 500m Milestone Cheers & Insights (MilestoneService)</h3>
+  <p>
+    <strong>Concept:</strong> Traditional trackers wait until 1 km or 5 km to notify you. For a beginner or stressed individual, 1 km can feel far. Every <strong>500 meters (0.5 km)</strong>, WalkMate triggers a celebratory micro-banner:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Milestone</th>
+        <th>Supportive Message</th>
+        <th>Body & Mind Insight</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>0.5 km 🌱</strong></td>
+        <td><em>"Nice start! Taking the first step is always the hardest."</em></td>
+        <td>Breathing and pulse settling into natural cadence.</td>
+      </tr>
+      <tr>
+        <td><strong>1.0 km 🌿</strong></td>
+        <td><em>"One full kilometer! Feel the earth gently supporting your stride."</em></td>
+        <td>Fresh oxygen circulating to the brain's hippocampus.</td>
+      </tr>
+      <tr>
+        <td><strong>1.5 km 🍃</strong></td>
+        <td><em>"You've settled into a lovely rhythm. Notice the quiet around you."</em></td>
+        <td>Neck and shoulder tightness naturally decompressing.</td>
+      </tr>
+      <tr>
+        <td><strong>2.0 km ✨</strong></td>
+        <td><em>"Two kilometers of self-care. Notice how your thoughts clear."</em></td>
+        <td>~100 kcal burned: powers 2 hours of sharp cognitive focus.</td>
+      </tr>
+      <tr>
+        <td><strong>3.0 km 🌾</strong></td>
+        <td><em>"Three full kilometers. Beautiful dedication to your well-being."</em></td>
+        <td>Endorphin release creates gentle, lasting mood elevation.</td>
+      </tr>
+      <tr>
+        <td><strong>5.0 km 🌟</strong></td>
+        <td><em>"Five whole kilometers of peaceful walking! Celebrate this moment."</em></td>
+        <td>Over 6,500 mindful steps strengthening cardiovascular health.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 3.5 BREATHING PULSE -->
+  <h3>3.5 The Breathing Pulse Circle (PulseCircle)</h3>
+  <p>
+    <strong>Concept:</strong> During an active walk, the center circle doesn't just show distance—it gently expands and contracts in a <strong>3.2-second smooth sine curve</strong>.
+    This timing matches the physiological <em>box-breathing cadence</em>, subconsciously guiding the user to breathe deeply and release stress while walking.
+  </p>
+
+  <!-- 3.6 MEMORY CARD -->
+  <h3>3.6 The Polaroid Walk Memory Card (MemoryCardService)</h3>
+  <p>
+    <strong>Concept:</strong> When you finish a walk, you shouldn't just see a boring spreadsheet of numbers. You created a memory!
+  </p>
+  <ul>
+    <li><strong>Editorial Polaroid Layout:</strong> Off-white textured background, subtle warm shadows, rounded photo frame, typography with serif accents.</li>
+    <li><strong>Photo Options:</strong> Take a photo with Camera or pick from Gallery via <code>image_picker</code>. If no photo is chosen, it automatically renders a calming botanical tree illustration with sun rays.</li>
+    <li><strong>RepaintBoundary Technology:</strong> Flutter can render any widget subtree directly into an off-screen bitmap at <code>3.0x pixel ratio</code> (Retina print quality).</li>
+    <li><strong>Share & Download:</strong> The bitmap is written as a PNG to temporary storage and opened directly in Android's native share tray (WhatsApp, Instagram Stories, Telegram, or Gallery).</li>
+  </ul>
+
+  <!-- PAGE BREAK FOR SECTION 4: CODE MAP -->
+  <div class="page-break"></div>
+
+  <!-- SECTION 4: CODE STRUCTURE -->
+  <h2>4. Project Code Blueprint: What Each File Does</h2>
+  <p>
+    Here is the exact map of the entire WalkMate codebase so you know exactly where everything lives:
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>File Path</th>
+        <th>Layer</th>
+        <th>Core Responsibility</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>lib/main.dart</code></td>
+        <td>App Entry</td>
+        <td>Initializes Flutter bindings, locks portrait orientation, boots StorageService and launches MaterialApp.</td>
+      </tr>
+      <tr>
+        <td><code>lib/theme/app_colors.dart</code></td>
+        <td>Theme</td>
+        <td>Defines the curated palette: Forest Sage (<code>#3E664F</code>), Mint Mist (<code>#E9F1EC</code>), Oat Sand (<code>#F4F1EA</code>), and Peach (<code>#E58F65</code>).</td>
+      </tr>
+      <tr>
+        <td><code>lib/theme/app_theme.dart</code></td>
+        <td>Theme</td>
+        <td>Configures Material 3 ThemeData with Google Fonts (Outfit), soft card elevations, and rounded button borders.</td>
+      </tr>
+      <tr>
+        <td><code>lib/models/walk_session.dart</code></td>
+        <td>Model</td>
+        <td>Stores summary stats (distance, duration, calories, avg speed, photo, phrase). <strong>Never stores GPS points.</strong></td>
+      </tr>
+      <tr>
+        <td><code>lib/models/milestone_info.dart</code></td>
+        <td>Model</td>
+        <td>Holds milestone distance, title, supportive cheer, insight text, and emoji icon.</td>
+      </tr>
+      <tr>
+        <td><code>lib/models/movement_insight.dart</code></td>
+        <td>Model</td>
+        <td>Collection of scientific calorie, movement, and resting insights.</td>
+      </tr>
+      <tr>
+        <td><code>lib/services/storage_service.dart</code></td>
+        <td>Service</td>
+        <td>Interfaces with SharedPreferences for saving user weight (kg/lbs) and lifetime walk summaries.</td>
+      </tr>
+      <tr>
+        <td><code>lib/services/calorie_service.dart</code></td>
+        <td>Service</td>
+        <td>Calculates MET values based on walking speed tiers and computes real-time calories burned.</td>
+      </tr>
+      <tr>
+        <td><code>lib/services/tracking_service.dart</code></td>
+        <td>Service</td>
+        <td>Manages GPS location stream, distance accumulation, speed smoothing, pause/resume, and milestone detection.</td>
+      </tr>
+      <tr>
+        <td><code>lib/services/milestone_service.dart</code></td>
+        <td>Service</td>
+        <td>Detects when cumulative distance crosses 500m boundaries and returns the appropriate encouraging message.</td>
+      </tr>
+      <tr>
+        <td><code>lib/services/memory_card_service.dart</code></td>
+        <td>Service</td>
+        <td>Captures <code>RepaintBoundary</code> widget tree as high-res PNG image and triggers native Android share sheet.</td>
+      </tr>
+      <tr>
+        <td><code>lib/widgets/weight_dialog.dart</code></td>
+        <td>Widget</td>
+        <td>Modal dialog for entering weight once with interactive kg/lbs toggle and privacy reassurance.</td>
+      </tr>
+      <tr>
+        <td><code>lib/widgets/pulse_circle.dart</code></td>
+        <td>Widget</td>
+        <td>Concentric animated breathing circle creating a soothing pacing effect on the active tracking screen.</td>
+      </tr>
+      <tr>
+        <td><code>lib/widgets/milestone_banner.dart</code></td>
+        <td>Widget</td>
+        <td>Celebratory banner card that pops in whenever a 500m milestone is achieved.</td>
+      </tr>
+      <tr>
+        <td><code>lib/widgets/stat_badge.dart</code></td>
+        <td>Widget</td>
+        <td>Reusable metric tile with icon, title, large numeric value, and unit.</td>
+      </tr>
+      <tr>
+        <td><code>lib/widgets/walk_memory_card.dart</code></td>
+        <td>Widget</td>
+        <td>The visual centerpiece: Polaroid editorial memory card with photo frame, stats, quote, and watermark.</td>
+      </tr>
+      <tr>
+        <td><code>lib/screens/home_screen.dart</code></td>
+        <td>Screen</td>
+        <td>Welcoming dashboard with time-of-day greeting, weight badge, Start Walk button, and lifetime stats.</td>
+      </tr>
+      <tr>
+        <td><code>lib/screens/active_walk_screen.dart</code></td>
+        <td>Screen</td>
+        <td>Real-time walk tracking screen with pulse circle, live metrics, milestone toasts, and pause/finish controls.</td>
+      </tr>
+      <tr>
+        <td><code>lib/screens/walk_summary_screen.dart</code></td>
+        <td>Screen</td>
+        <td>Summary screen showing the live Walk Memory Card preview, camera photo picker, phrase picker, and share button.</td>
+      </tr>
+      <tr>
+        <td><code>android/.../AndroidManifest.xml</code></td>
+        <td>Android Native</td>
+        <td>Declares location permissions (FINE/COARSE), camera access, and foreground service permissions.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PAGE BREAK FOR SECTION 5 -->
+  <div class="page-break"></div>
+
+  <!-- SECTION 5: HOW TO RUN & BUILD -->
+  <h2>5. How to Run, Test, and Deploy</h2>
+
+  <h3>A. Live Interactive Simulator (Already Running!)</h3>
+  <p>
+    You can run and test all screens, walk simulations, 500m milestones, and memory card exports right now in your browser at:
+    <br>
+    <strong><code>http://localhost:3456</code></strong>
+  </p>
+
+  <h3>B. Running in Android Studio</h3>
+  <ol>
+    <li>Open <strong>Android Studio</strong>.</li>
+    <li>Click <strong>Open</strong> and choose the folder: <code>Runwithme</code>.</li>
+    <li>In the device selector at the top bar, pick your installed emulator (<strong>Pixel_4</strong> or <strong>Medium_Phone_API_36</strong>).</li>
+    <li>Click the green <strong>Run ▶</strong> button. Android Studio will automatically build the debug APK and launch it on your virtual phone!</li>
+  </ol>
+
+  <h3>C. Testing on Your Physical Android Phone</h3>
+  <ol>
+    <li>On your Android phone, go to <strong>Settings &gt; About Phone</strong> and tap <strong>Build Number</strong> 7 times to enable Developer Options.</li>
+    <li>Go to <strong>Developer Options</strong> and toggle <strong>USB Debugging</strong> to ON.</li>
+    <li>Plug your phone into your PC via USB cable and allow the debugging prompt on your phone screen.</li>
+    <li>In terminal, run: <code>flutter run</code>. The app installs directly onto your phone!</li>
+  </ol>
+
+  <div class="callout">
+    <div class="callout-title">🌿 You Built WalkMate!</div>
+    <p>
+      Every single line of this application was designed specifically for your vision: a supportive, private, non-competitive companion that honors your movement. You now understand every formula, widget, and architectural decision inside out.
+    </p>
+  </div>
+
+</body>
+</html>

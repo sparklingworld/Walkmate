@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WalkMate 🌱 - Mindful Walking Companion Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Background Ambiance -->
+  <div class="ambient-gradient"></div>
+
+  <!-- Top Controller Bar for Antigravity Preview -->
+  <header class="preview-header">
+    <div class="preview-brand">
+      <span class="brand-sprout">🌱</span>
+      <span class="brand-title">WalkMate Web Simulator</span>
+      <span class="preview-badge">Live Interactive Prototype</span>
+    </div>
+    <div class="preview-controls">
+      <button id="toggleDeviceFrameBtn" class="control-btn" title="Toggle Mobile Phone Frame">
+        📱 Phone Frame
+      </button>
+      <button id="gpsSimulateWalkBtn" class="control-btn accent" title="Simulate Walking Movement">
+        🚶 Simulate Stride (4.8 km/h)
+      </button>
+      <button id="jump500mBtn" class="control-btn subtle" title="Trigger 500m Milestone Instantly">
+        ✨ +500m Milestone Jump
+      </button>
+    </div>
+  </header>
+
+  <!-- Phone Frame Wrapper -->
+  <div class="device-viewport">
+    <div class="phone-frame" id="phoneFrame">
+      <!-- Status Bar -->
+      <div class="phone-status-bar">
+        <span class="status-time" id="statusClock">9:41</span>
+        <div class="status-notch"></div>
+        <div class="status-icons">
+          <span>●●●</span>
+          <span>5G</span>
+          <span>98%</span>
+        </div>
+      </div>
+
+      <!-- App View Container -->
+      <main class="app-container">
+        
+        <!-- ================= SCREEN 1: HOME ================= -->
+        <section id="screenHome" class="screen active">
+          <!-- Top Bar -->
+          <div class="app-header">
+            <div class="app-logo">
+              <div class="logo-icon">👟</div>
+              <div>
+                <h1 class="logo-title">WalkMate</h1>
+                <p class="logo-subtitle">Mindful Companion</p>
+              </div>
+            </div>
+            <button id="weightChipBtn" class="weight-chip" title="Tap to adjust weight">
+              <span class="icon">⚖️</span>
+              <span id="homeWeightDisplay">70 kg</span>
+            </button>
+          </div>
+
+          <!-- Greeting & Encouragement -->
+          <div class="greeting-section">
+            <h2 id="homeGreeting" class="greeting-heading">Good morning 🌱</h2>
+            <p class="greeting-sub">No route or destination required. Step outside and move at your own natural pace.</p>
+          </div>
+
+          <!-- Hero Action Card -->
+          <div class="start-walk-card">
+            <div class="card-glow"></div>
+            <div class="card-content">
+              <h3>Ready for a stroll?</h3>
+              <p>Track distance, time, and gentle calories with 100% privacy.</p>
+              
+              <button id="startWalkBtn" class="big-start-circle" aria-label="Start Walking">
+                <span class="play-icon">▶</span>
+              </button>
+              <span class="tap-hint">Tap to Start Walk</span>
+            </div>
+          </div>
+
+          <!-- Privacy Guarantee Badge -->
+          <div class="privacy-guarantee">
+            <span class="shield-icon">🛡️</span>
+            <div>
+              <h4>100% Private Walking Companion</h4>
+              <p>GPS is used only while walking. No routes, maps, or coordinates are ever stored or uploaded.</p>
+            </div>
+          </div>
+
+          <!-- Lifetime Summary Stats -->
+          <div class="lifetime-summary">
+            <div class="summary-col">
+              <span class="summary-emoji">👟</span>
+              <strong id="lifetimeWalks">0</strong>
+              <small>Walks</small>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-col">
+              <span class="summary-emoji">🌱</span>
+              <strong id="lifetimeDist">0.0 km</strong>
+              <small>Total Distance</small>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-col">
+              <span class="summary-emoji">🔥</span>
+              <strong id="lifetimeCals">0 kcal</strong>
+              <small>Est. Energy</small>
+            </div>
+          </div>
+
+          <!-- Recent Walk Memories -->
+          <div class="recent-section">
+            <div class="recent-header">
+              <h3>Recent Walk Memories</h3>
+              <span class="recent-tag">Offline & Private</span>
+            </div>
+            <div id="recentWalksList" class="recent-list">
+              <div class="empty-state">
+                <p>No walks yet today. Take your first gentle step!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SCREEN 2: ACTIVE WALK ================= -->
+        <section id="screenActive" class="screen">
+          <div class="active-header">
+            <div class="walk-status-pill" id="walkStatusIndicator">
+              <span class="pulse-dot"></span>
+              <span id="walkStatusText">Active Walk • Mindful Pace</span>
+            </div>
+            <button id="closeActiveWalkBtn" class="icon-btn-round" title="End Walk">✕</button>
+          </div>
+
+          <!-- 500m Milestone Toast / Banner -->
+          <div id="milestoneToast" class="milestone-toast hidden">
+            <div class="toast-top">
+              <span class="toast-emoji" id="milestoneEmoji">🌱</span>
+              <div class="toast-text">
+                <strong id="milestoneTitle">0.5 km done 🌱</strong>
+                <p id="milestoneMsg">Nice start! Taking the first step is always the sweetest.</p>
+              </div>
+              <button id="dismissMilestoneBtn" class="toast-close">✕</button>
+            </div>
+            <div class="toast-insight">
+              <span>☀️</span>
+              <small id="milestoneInsight">Circulation is gently improving, bringing fresh oxygen to your mind.</small>
+            </div>
+          </div>
+
+          <!-- Primary Breathing Pulse Circle with Distance -->
+          <div class="circle-container">
+            <div class="breathing-halo" id="breathingHalo"></div>
+            <div class="inner-circle">
+              <span class="primary-distance" id="liveDistance">0.00</span>
+              <span class="primary-unit">kilometers</span>
+              <span class="live-pace-badge" id="livePace">--'--" /km</span>
+            </div>
+          </div>
+
+          <!-- 2x2 Metric Grid -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-title">
+                <span class="metric-icon">⏱️</span>
+                <span>Duration</span>
+              </div>
+              <div class="metric-value" id="liveDuration">00:00</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">
+                <span class="metric-icon">⚡</span>
+                <span>Speed</span>
+              </div>
+              <div class="metric-value">
+                <span id="liveSpeed">0.0</span> <small>km/h</small>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">
+                <span class="metric-icon">🔥</span>
+                <span>Calories (MET)</span>
+              </div>
+              <div class="metric-value">
+                <span id="liveCalories">0</span> <small>kcal</small>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">
+                <span class="metric-icon">📏</span>
+                <span>Meters</span>
+              </div>
+              <div class="metric-value">
+                <span id="liveMeters">0</span> <small>m</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Movement / Calorie Insight Bubble -->
+          <div class="insight-card" id="activeInsightCard">
+            <span class="insight-icon" id="insightIcon">🌿</span>
+            <div class="insight-content">
+              <h5 id="insightTitle">Mind Clearing</h5>
+              <p id="insightDesc">A gentle walking pace stimulates blood flow to the hippocampus, boosting creative problem solving.</p>
+            </div>
+          </div>
+
+          <!-- Active Walk Controls -->
+          <div class="active-controls">
+            <button id="pauseResumeBtn" class="btn-calm outline">
+              <span id="pauseResumeIcon">⏸</span>
+              <span id="pauseResumeLabel">Pause</span>
+            </button>
+            <button id="finishWalkBtn" class="btn-calm primary">
+              <span>⏹</span>
+              <span>Finish Walk</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ================= SCREEN 3: SUMMARY & MEMORY CARD ================= -->
+        <section id="screenSummary" class="screen">
+          <div class="summary-header">
+            <h2>Walk Completed 🌱</h2>
+            <button id="summaryCloseBtn" class="icon-btn-round">✕</button>
+          </div>
+
+          <div class="summary-greeting">
+            <h3>Wonderful Walk! ✨</h3>
+            <p>You gave your body and mind pure care. Here is your memory card:</p>
+          </div>
+
+          <!-- THE EDITORIAL POLAROID MEMORY CARD (CANVAS CAPTURABLE) -->
+          <div class="memory-card-wrap">
+            <div class="memory-card" id="walkMemoryCard">
+              <div class="card-header-bar">
+                <div class="card-meta">
+                  <span class="meta-sprout">🌿</span>
+                  <div>
+                    <div class="meta-date" id="cardDate">Friday, Oct 2, 2026</div>
+                    <div class="meta-time" id="cardTime">3:45 PM</div>
+                  </div>
+                </div>
+                <div class="card-chip">Walk Memory</div>
+              </div>
+
+              <!-- Photo Area -->
+              <div class="card-photo-box" id="cardPhotoContainer">
+                <img id="cardUserPhoto" class="card-user-img hidden" alt="Walk memory photo">
+                <div class="card-photo-fallback" id="cardPhotoFallback">
+                  <div class="art-circle-1"></div>
+                  <div class="art-circle-2"></div>
+                  <div class="art-tree">🌲</div>
+                  <div class="art-title" id="cardArtTitle">2.45 km Mindful Walk</div>
+                  <div class="art-sub">Nourishing body and spirit</div>
+                </div>
+              </div>
+
+              <!-- Quote Phrase Banner -->
+              <div class="card-phrase-pill">
+                <span class="quote-mark">“</span>
+                <span id="cardPhraseText">A gentle step forward 🌱</span>
+              </div>
+
+              <!-- Custom Note (Optional) -->
+              <div id="cardNoteDisplay" class="card-custom-note hidden"></div>
+
+              <div class="card-divider"></div>
+
+              <!-- 4-Col Stats -->
+              <div class="card-stats-row">
+                <div class="card-stat">
+                  <span class="stat-symbol">🚶</span>
+                  <div class="stat-num"><span id="cardDistVal">0.00</span> <small>km</small></div>
+                  <div class="stat-lbl">Distance</div>
+                </div>
+                <div class="card-stat">
+                  <span class="stat-symbol">⏱️</span>
+                  <div class="stat-num"><span id="cardDurationVal">00:00</span></div>
+                  <div class="stat-lbl">Duration</div>
+                </div>
+                <div class="card-stat">
+                  <span class="stat-symbol">🔥</span>
+                  <div class="stat-num"><span id="cardCalVal">0</span> <small>kcal</small></div>
+                  <div class="stat-lbl">Calories</div>
+                </div>
+                <div class="card-stat">
+                  <span class="stat-symbol">⚡</span>
+                  <div class="stat-num"><span id="cardSpeedVal">0.0</span> <small>km/h</small></div>
+                  <div class="stat-lbl">Avg Speed</div>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <div class="footer-privacy">
+                  <span>🛡️</span>
+                  <span>Private • No GPS saved</span>
+                </div>
+                <div class="footer-brand">
+                  <span>WalkMate</span>
+                  <span>🌱</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Memory Card Actions (Photo & Phrase Pickers) -->
+          <div class="card-customizer">
+            <div class="photo-picker-row">
+              <label for="photoFileInput" class="btn-picker">
+                <span>📷 Add Walk Photo</span>
+                <input type="file" id="photoFileInput" accept="image/*" class="file-input-hidden">
+              </label>
+              <button id="removePhotoBtn" class="btn-picker subtle hidden">Remove Photo</button>
+            </div>
+
+            <!-- Phrase Choice Chips -->
+            <div class="phrase-picker-box">
+              <label>Choose Memory Phrase</label>
+              <div class="chips-container" id="phraseChipsContainer">
+                <button class="phrase-chip active" data-phrase="A gentle step forward 🌱">A gentle step forward 🌱</button>
+                <button class="phrase-chip" data-phrase="Mind clear, feet grounded ✨">Mind clear, feet grounded ✨</button>
+                <button class="phrase-chip" data-phrase="Every stride was an act of kindness 🌸">Every stride was an act of kindness 🌸</button>
+                <button class="phrase-chip" data-phrase="Breathe in peace, step with ease 🍃">Breathe in peace, step with ease 🍃</button>
+                <button class="phrase-chip" data-phrase="Showing up for myself today 🌻">Showing up for myself today 🌻</button>
+              </div>
+            </div>
+
+            <!-- Optional Reflection Note -->
+            <div class="note-input-box">
+              <label for="customNoteInput">Personal Reflection (Optional)</label>
+              <input type="text" id="customNoteInput" placeholder="e.g. Crisp autumn breeze, felt refreshed...">
+            </div>
+          </div>
+
+          <!-- Bottom Actions: Download Image & Home -->
+          <div class="summary-actions">
+            <button id="downloadCardBtn" class="btn-calm terracotta">
+              <span>📥 Download Card (PNG)</span>
+            </button>
+            <button id="shareCardBtn" class="btn-calm primary">
+              <span>📤 Share Memory</span>
+            </button>
+            <button id="doneWalkBtn" class="btn-calm outline full-width">
+              <span>Back Home</span>
+            </button>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Weight Modal -->
+      <div id="weightModal" class="modal-backdrop hidden">
+        <div class="modal-dialog">
+          <div class="modal-title-row">
+            <div class="modal-icon">⚖️</div>
+            <div>
+              <h3>Your Weight</h3>
+              <p>For accurate, supportive MET calorie calculation</p>
+            </div>
+          </div>
+
+          <div class="weight-input-group">
+            <input type="number" id="weightNumericInput" min="20" max="300" value="70">
+            <div class="unit-toggle">
+              <button id="unitKgBtn" class="unit-btn active">kg</button>
+              <button id="unitLbsBtn" class="unit-btn">lbs</button>
+            </div>
+          </div>
+
+          <div class="modal-privacy-note">
+            <span>🔒</span>
+            <small>Stored safely on this device only. Never uploaded.</small>
+          </div>
+
+          <div class="modal-btn-row">
+            <button id="closeWeightModalBtn" class="btn-calm outline">Cancel</button>
+            <button id="saveWeightModalBtn" class="btn-calm primary">Save Weight</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HTML2Canvas CDN for generating downloadable PNG memory card -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
