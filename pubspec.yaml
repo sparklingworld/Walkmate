@@ -1,0 +1,42 @@
+name: walkmate
+description: "WalkMate - A calm, supportive walking companion that respects your privacy."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Core & UI
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  intl: ^0.19.0
+
+  # Location & Tracking (Temporary GPS only during walk)
+  geolocator: ^13.0.2
+
+  # Local Key-Value Persistence (Weight, user unit preference)
+  shared_preferences: ^2.3.5
+
+  # Photo selection for walk memory card
+  image_picker: ^1.1.2
+
+  # Rendering and sharing walk memory card
+  path_provider: ^2.1.5
+  share_plus: ^10.1.4
+
+  # Optional local notifications for 500m milestones
+  flutter_local_notifications: ^18.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
