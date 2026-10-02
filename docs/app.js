@@ -1,5 +1,5 @@
 // WalkMate Interactive Web Prototype
-// Pure Client-side Logic mirroring Flutter WalkMate
+// Pure Client-side Logic mirroring Flutter WalkMate with Precise Movement Detection
 
 (function() {
   'use strict';
@@ -9,11 +9,11 @@
     weightKg: 70.0,
     weightUnit: 'kg', // 'kg' or 'lbs'
     status: 'idle', // 'idle' | 'tracking' | 'paused' | 'summary'
+    movementMode: 'walk', // 'still' | 'walk' | 'run' | 'gps'
     cumulativeDistanceMeters: 0.0,
     currentSpeedKmh: 0.0,
     durationSeconds: 0,
     caloriesBurned: 0.0,
-    isSimulating: true, // Auto-simulates realistic walking
     strideInterval: null,
     tickerInterval: null,
     milestonesPassed: new Set(),
@@ -52,7 +52,7 @@
     },
     2500: {
       title: "2.5 km milestone 🌸",
-      message: "Halfway to five! Walk at your own gentle pace—there is no rush.",
+      message: "Halfway to five! Move at your own gentle pace—there is no rush.",
       insight: "Movement boosts serotonin, providing a steady feeling of calm.",
       emoji: "🌸"
     },
@@ -70,7 +70,7 @@
     },
     5000: {
       title: "5.0 km champion 🌟",
-      message: "Five whole kilometers of peaceful walking! Celebrate this moment.",
+      message: "Five whole kilometers of peaceful movement! Celebrate this moment.",
       insight: "You've given your heart, mind, and spirit a wonderful, lasting gift.",
       emoji: "🌟"
     }
@@ -81,6 +81,7 @@
     { emoji: "🌱", title: "Gentle Metabolism", desc: "Walking activates slow-twitch muscle fibers that steadily burn lipids without straining joints." },
     { emoji: "🍃", title: "Resting Harmony", desc: "Taking a short pause regulates heart rate recovery and resets breathing cadence." },
     { emoji: "✨", title: "Post-Walk Glow", desc: "Just 20 minutes of movement releases gentle mood-elevating neurotransmitters." },
+    { emoji: "🏃", title: "Aerobic Vitality", desc: "A brisk jog strengthens cardiac output and increases lung volume capacity." },
     { emoji: "🔋", title: "Cellular Energy", desc: "Every 50 kcal burned powers the equivalent of an hour of uninterrupted cognitive focus." }
   ];
 
@@ -100,7 +101,7 @@
     lifetimeCals: document.getElementById('lifetimeCals'),
     recentWalksList: document.getElementById('recentWalksList'),
 
-    // Active
+    // Active screen elements
     walkStatusIndicator: document.getElementById('walkStatusIndicator'),
     walkStatusText: document.getElementById('walkStatusText'),
     breathingHalo: document.getElementById('breathingHalo'),
@@ -125,6 +126,12 @@
     milestoneMsg: document.getElementById('milestoneMsg'),
     milestoneInsight: document.getElementById('milestoneInsight'),
     dismissMilestoneBtn: document.getElementById('dismissMilestoneBtn'),
+
+    // Mode Selector Pills
+    modeStillBtn: document.getElementById('modeStillBtn'),
+    modeWalkBtn: document.getElementById('modeWalkBtn'),
+    modeRunBtn: document.getElementById('modeRunBtn'),
+    modeGpsBtn: document.getElementById('modeGpsBtn'),
 
     // Summary
     walkMemoryCard: document.getElementById('walkMemoryCard'),
@@ -174,10 +181,9 @@
   function updateClock() {
     const now = new Date();
     let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padLeft ? now.getMinutes().toString().padStart(2, '0') : now.getMinutes();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
     els.statusClock.textContent = `${hours}:${minutes}`;
 
-    // Update greeting
     if (hours < 12) {
       els.homeGreeting.textContent = "Good morning 🌱";
     } else if (hours < 17) {
@@ -211,14 +217,14 @@
 
   // --- MET Calorie Calculation Engine ---
   function getMetForSpeed(speedKmh, isPaused) {
-    if (isPaused) return 1.2;
-    if (speedKmh <= 0.5) return 1.3;
+    if (isPaused || speedKmh < 0.8) return 1.2; // Resting / stationary
     if (speedKmh < 2.5) return 2.0; // Strolling
-    if (speedKmh < 3.5) return 2.8; // Relaxed
-    if (speedKmh < 4.5) return 3.3; // Moderate
-    if (speedKmh < 5.5) return 3.8; // Brisk
-    if (speedKmh < 6.5) return 4.3; // Very brisk
-    return 5.0; // Fast
+    if (speedKmh < 4.0) return 3.0; // Relaxed walk
+    if (speedKmh < 5.5) return 3.6; // Moderate walk
+    if (speedKmh < 7.5) return 4.5; // Brisk / power walk
+    if (speedKmh < 9.5) return 7.5; // Jogging / light run
+    if (speedKmh < 12.0) return 9.8; // Running
+    return 11.5; // Fast running
   }
 
   function calculateIncrementalCalories(speedKmh, isPaused) {
@@ -233,30 +239,73 @@
     state.cumulativeDistanceMeters = 0.0;
     state.durationSeconds = 0;
     state.caloriesBurned = 0.0;
-    state.currentSpeedKmh = state.isSimulating ? 4.7 : 0.0;
     state.milestonesPassed.clear();
     state.lastPosition = null;
+
+    // Default to walking mode on start
+    setMovementMode('walk');
 
     showScreen(els.screenActive);
     updateActiveView();
 
-    // 1-second timer tick
+    // 1-second ticker for duration and continuous calorie increment
     clearInterval(state.tickerInterval);
     state.tickerInterval = setInterval(onSecondTick, 1000);
 
-    // Stride simulator or browser geolocation
-    if (state.isSimulating) {
-      clearInterval(state.strideInterval);
-      state.strideInterval = setInterval(simulateStepDelta, 1000);
-    } else {
+    // Stride displacement ticker (checks every 1 second)
+    clearInterval(state.strideInterval);
+    state.strideInterval = setInterval(onStrideStep, 1000);
+  }
+
+  function setMovementMode(mode) {
+    state.movementMode = mode;
+
+    // Reset button states
+    [els.modeStillBtn, els.modeWalkBtn, els.modeRunBtn, els.modeGpsBtn].forEach(b => {
+      b.classList.remove('active', 'running-active', 'still-active');
+    });
+
+    if (state.geolocationWatchId && mode !== 'gps') {
+      navigator.geolocation.clearWatch(state.geolocationWatchId);
+      state.geolocationWatchId = null;
+    }
+
+    if (mode === 'still') {
+      els.modeStillBtn.classList.add('active', 'still-active');
+      state.currentSpeedKmh = 0.0;
+      updateStatusLabel("Standing Still 🛑", "still");
+    } else if (mode === 'walk') {
+      els.modeWalkBtn.classList.add('active');
+      state.currentSpeedKmh = 4.3;
+      updateStatusLabel("Mindful Walk 🌱", "walk");
+    } else if (mode === 'run') {
+      els.modeRunBtn.classList.add('active', 'running-active');
+      state.currentSpeedKmh = 9.5;
+      updateStatusLabel("Running / Jogging 🏃", "running");
+    } else if (mode === 'gps') {
+      els.modeGpsBtn.classList.add('active');
+      updateStatusLabel("Real Hardware GPS 📍", "gps");
       startRealGeolocation();
     }
+
+    updateActiveView();
+  }
+
+  function updateStatusLabel(text, type) {
+    els.walkStatusText.textContent = text;
+    els.walkStatusIndicator.className = 'walk-status-pill';
+    if (type === 'running') els.walkStatusIndicator.classList.add('running');
+    if (type === 'still') els.walkStatusIndicator.classList.add('still');
+    if (type === 'paused') els.walkStatusIndicator.classList.add('paused');
   }
 
   function onSecondTick() {
     if (state.status === 'tracking') {
       state.durationSeconds++;
-      state.caloriesBurned += calculateIncrementalCalories(state.currentSpeedKmh, false);
+
+      // When standing still, calories burn at resting metabolic rate (MET 1.2)
+      const isStill = state.movementMode === 'still' || state.currentSpeedKmh < 0.8;
+      state.caloriesBurned += calculateIncrementalCalories(state.currentSpeedKmh, isStill);
       updateActiveView();
 
       // Cycle insight every 60 seconds
@@ -273,17 +322,34 @@
     }
   }
 
-  function simulateStepDelta() {
+  function onStrideStep() {
     if (state.status !== 'tracking') return;
-    // Normal walking pace: ~4.5 to 5.2 km/h -> ~1.25 to 1.45 meters/sec
-    const jitter = (Math.random() * 0.4) - 0.2; // +/- 0.2 km/h
-    state.currentSpeedKmh = Math.max(3.8, Math.min(5.6, 4.8 + jitter));
-    const deltaMeters = (state.currentSpeedKmh * 1000.0) / 3600.0;
 
-    const previousDistance = state.cumulativeDistanceMeters;
-    state.cumulativeDistanceMeters += deltaMeters;
+    // CRITICAL FIX: If standing still, distance DOES NOT INCREASE as time increases!
+    if (state.movementMode === 'still') {
+      state.currentSpeedKmh = 0.0;
+      return;
+    }
 
-    checkMilestones(previousDistance, state.cumulativeDistanceMeters);
+    if (state.movementMode === 'walk') {
+      // Natural walking cadence ~4.0 - 4.6 km/h with subtle organic fluctuation
+      const jitter = (Math.random() * 0.4) - 0.2;
+      state.currentSpeedKmh = Math.max(3.6, Math.min(5.2, 4.3 + jitter));
+      const deltaMeters = (state.currentSpeedKmh * 1000.0) / 3600.0; // ~1.19 meters/sec
+
+      const previousDistance = state.cumulativeDistanceMeters;
+      state.cumulativeDistanceMeters += deltaMeters;
+      checkMilestones(previousDistance, state.cumulativeDistanceMeters);
+    } else if (state.movementMode === 'run') {
+      // Running / Jogging pace ~9.0 - 10.2 km/h
+      const jitter = (Math.random() * 0.6) - 0.3;
+      state.currentSpeedKmh = Math.max(8.5, Math.min(11.0, 9.6 + jitter));
+      const deltaMeters = (state.currentSpeedKmh * 1000.0) / 3600.0; // ~2.66 meters/sec
+
+      const previousDistance = state.cumulativeDistanceMeters;
+      state.cumulativeDistanceMeters += deltaMeters;
+      checkMilestones(previousDistance, state.cumulativeDistanceMeters);
+    }
   }
 
   function checkMilestones(prevMeters, curMeters) {
@@ -291,40 +357,38 @@
     const cur500 = Math.floor(curMeters / 500);
 
     if (cur500 > prev500 && cur500 > 0) {
-      const milestoneDistance = cur500 * 500;
-      if (!state.milestonesPassed.has(milestoneDistance)) {
-        state.milestonesPassed.add(milestoneDistance);
-        triggerMilestone(milestoneDistance);
-      }
+      finalMilestoneTrigger(cur500 * 500);
     }
   }
 
-  function triggerMilestone(meters) {
-    const info = milestoneMap[meters] || {
-      title: `${(meters / 1000).toFixed(1)} km done 🌱`,
-      message: "Continuing strong with grace and care. Be proud of each mindful step.",
-      insight: "Every stride supports your vitality and inner calm.",
-      emoji: "🌱"
-    };
+  function finalMilestoneTrigger(milestoneDistance) {
+    if (!state.milestonesPassed.has(milestoneDistance)) {
+      state.milestonesPassed.add(milestoneDistance);
 
-    els.milestoneEmoji.textContent = info.emoji;
-    els.milestoneTitle.textContent = info.title;
-    els.milestoneMsg.textContent = info.message;
-    els.milestoneInsight.textContent = info.insight;
-    els.milestoneToast.classList.remove('hidden');
+      const info = milestoneMap[milestoneDistance] || {
+        title: `${(milestoneDistance / 1000).toFixed(1)} km done 🌱`,
+        message: "Continuing strong with grace and care. Be proud of each mindful step.",
+        insight: "Every stride supports your vitality and inner calm.",
+        emoji: "🌱"
+      };
 
-    // Auto-dismiss toast after 9 seconds
-    setTimeout(() => {
-      els.milestoneToast.classList.add('hidden');
-    }, 9000);
+      els.milestoneEmoji.textContent = info.emoji;
+      els.milestoneTitle.textContent = info.title;
+      els.milestoneMsg.textContent = info.message;
+      els.milestoneInsight.textContent = info.insight;
+      els.milestoneToast.classList.remove('hidden');
+
+      setTimeout(() => {
+        els.milestoneToast.classList.add('hidden');
+      }, 9000);
+    }
   }
 
   function togglePauseWalk() {
     if (state.status === 'tracking') {
       state.status = 'paused';
       state.currentSpeedKmh = 0.0;
-      els.walkStatusIndicator.classList.add('paused');
-      els.walkStatusText.textContent = "Walk Paused • Resting";
+      updateStatusLabel("Walk Paused • Resting", "paused");
       els.pauseResumeIcon.textContent = "▶";
       els.pauseResumeLabel.textContent = "Resume";
       els.breathingHalo.classList.add('paused');
@@ -334,12 +398,10 @@
       els.insightDesc.textContent = "Taking a breather helps lower cortisol and regulates your pulse back to normal.";
     } else if (state.status === 'paused') {
       state.status = 'tracking';
-      state.currentSpeedKmh = 4.8;
-      els.walkStatusIndicator.classList.remove('paused');
-      els.walkStatusText.textContent = "Active Walk • Mindful Pace";
       els.pauseResumeIcon.textContent = "⏸";
       els.pauseResumeLabel.textContent = "Pause";
       els.breathingHalo.classList.remove('paused');
+      setMovementMode(state.movementMode);
     }
   }
 
@@ -391,7 +453,7 @@
       : "0.0";
     els.cardSpeedVal.textContent = avgSpeed;
 
-    els.cardArtTitle.textContent = `${km} km Mindful Walk`;
+    els.cardArtTitle.textContent = `${km} km Mindful Movement`;
     els.cardPhraseText.textContent = state.selectedPhrase;
 
     // Reset photo
@@ -469,7 +531,7 @@
     if (km < 0.05 || seconds < 10) return "--'--\" /km";
     const minutes = seconds / 60.0;
     const pace = minutes / km;
-    if (pace > 60 || pace < 3) return "--'--\" /km";
+    if (pace > 60 || pace < 2.5) return "--'--\" /km";
     const pMin = Math.floor(pace);
     const pSec = Math.round((pace - pMin) * 60).toString().padStart(2, '0');
     return `${pMin}'${pSec}" /km`;
@@ -478,34 +540,53 @@
   // --- Real Geolocation Handler ---
   function startRealGeolocation() {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported in this browser. Falling back to simulation.");
-      state.isSimulating = true;
+      alert("Geolocation is not supported in this browser. Falling back to walking simulation.");
+      setMovementMode('walk');
       return;
     }
 
     state.geolocationWatchId = navigator.geolocation.watchPosition(
       pos => {
-        const { latitude, longitude, speed } = pos.coords;
+        if (state.movementMode !== 'gps') return;
+        const { latitude, longitude, speed, accuracy } = pos.coords;
+
+        // Reject weak accuracy
+        if (accuracy > 25) return;
+
         if (state.lastPosition) {
           const delta = haversineDistance(
             state.lastPosition.lat, state.lastPosition.lng,
             latitude, longitude
           );
 
-          if (delta > 2 && delta < 30) { // filter noise & jumps
+          // If standing still (drift < 2.0m), DO NOT add distance!
+          if (delta < 2.0) {
+            state.currentSpeedKmh = 0.0;
+            updateStatusLabel("Standing Still 🛑", "still");
+          } else if (delta < 25) { // legitimate movement
             const prev = state.cumulativeDistanceMeters;
             state.cumulativeDistanceMeters += delta;
-            state.currentSpeedKmh = speed ? (speed * 3.6) : (delta * 3.6);
+
+            const computedSpeed = speed ? (speed * 3.6) : (delta * 3.6);
+            state.currentSpeedKmh = computedSpeed;
+
+            if (state.currentSpeedKmh >= 8.0) {
+              updateStatusLabel("Running / Jogging 🏃", "running");
+            } else {
+              updateStatusLabel("Mindful Walk 🌱", "walk");
+            }
+
             checkMilestones(prev, state.cumulativeDistanceMeters);
           }
         }
         // Immediately drop old reference
         state.lastPosition = { lat: latitude, lng: longitude };
+        updateActiveView();
       },
       err => {
         console.warn("GPS error:", err);
       },
-      { enableHighAccuracy: true, maximumAge: 2000, timeout: 5000 }
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
     );
   }
 
@@ -593,6 +674,12 @@
       renderHomeView();
       showScreen(els.screenHome);
     });
+
+    // Activity Mode Buttons
+    els.modeStillBtn.addEventListener('click', () => setMovementMode('still'));
+    els.modeWalkBtn.addEventListener('click', () => setMovementMode('walk'));
+    els.modeRunBtn.addEventListener('click', () => setMovementMode('run'));
+    els.modeGpsBtn.addEventListener('click', () => setMovementMode('gps'));
 
     // Milestone Toast dismiss
     els.dismissMilestoneBtn.addEventListener('click', () => {
@@ -687,11 +774,16 @@
     });
 
     els.gpsSimulateWalkBtn.addEventListener('click', () => {
-      state.isSimulating = !state.isSimulating;
-      els.gpsSimulateWalkBtn.textContent = state.isSimulating
-        ? "🚶 Simulate Stride (4.8 km/h)"
-        : "📍 Real GPS Mode";
-      els.gpsSimulateWalkBtn.classList.toggle('accent', state.isSimulating);
+      if (state.movementMode === 'walk') {
+        setMovementMode('run');
+        els.gpsSimulateWalkBtn.textContent = "🏃 Simulate Running (9.6 km/h)";
+      } else if (state.movementMode === 'run') {
+        setMovementMode('still');
+        els.gpsSimulateWalkBtn.textContent = "🛑 Standing Still (0.0 km/h)";
+      } else {
+        setMovementMode('walk');
+        els.gpsSimulateWalkBtn.textContent = "🚶 Simulate Walking (4.3 km/h)";
+      }
     });
 
     // Instant 500m Milestone Trigger

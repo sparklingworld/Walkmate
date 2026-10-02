@@ -5,29 +5,27 @@
 ///
 /// Accounts for:
 /// 1. User's weight (kg)
-/// 2. Walking speed/intensity (km/h)
-/// 3. Active elapsed time
+/// 2. Walking & running speed/intensity (km/h)
+/// 3. Active elapsed time and resting states
 class CalorieService {
-  /// Returns the estimated MET value based on walking speed in km/h.
+  /// Returns the estimated MET value based on walking/running speed in km/h.
   static double getMetForSpeed(double speedKmh, {bool isPaused = false}) {
-    if (isPaused) {
-      return 1.2; // Resting metabolic rate
-    }
-
-    if (speedKmh <= 0.5) {
-      return 1.3; // Barely moving / gentle pause
+    if (isPaused || speedKmh < 0.8) {
+      return 1.2; // Resting / stationary metabolic rate
     } else if (speedKmh < 2.5) {
-      return 2.0; // Casual strolling, window shopping
-    } else if (speedKmh < 3.5) {
-      return 2.8; // Relaxed walking, gentle pace
-    } else if (speedKmh < 4.5) {
-      return 3.3; // Moderate walking, steady stroll
+      return 2.0; // Casual strolling, gentle wandering
+    } else if (speedKmh < 4.0) {
+      return 3.0; // Relaxed walking, comfortable pace
     } else if (speedKmh < 5.5) {
-      return 3.8; // Brisk walking, purposeful stride
-    } else if (speedKmh < 6.5) {
-      return 4.3; // Very brisk, power walking
+      return 3.6; // Moderate walking, purposeful stride
+    } else if (speedKmh < 7.5) {
+      return 4.5; // Very brisk walking / power walking
+    } else if (speedKmh < 9.5) {
+      return 7.5; // Jogging / light running
+    } else if (speedKmh < 12.0) {
+      return 9.8; // Running (6 min/km pace)
     } else {
-      return 5.0; // Fast walking / uphill or hurried pace
+      return 11.5; // Fast running / sprint
     }
   }
 

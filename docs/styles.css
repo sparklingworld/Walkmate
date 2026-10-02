@@ -575,12 +575,93 @@ body {
   color: var(--amber);
 }
 
+.walk-status-pill.running {
+  background: var(--terracotta-soft);
+  color: var(--terracotta);
+}
+
+.walk-status-pill.still {
+  background: var(--surface-warm);
+  color: var(--muted);
+}
+
 .pulse-dot {
   width: 8px;
   height: 8px;
   background: var(--sage-primary);
   border-radius: 50%;
   animation: pulseDot 1.5s infinite;
+}
+
+.walk-status-pill.running .pulse-dot {
+  background: var(--terracotta);
+  animation-duration: 0.8s;
+}
+
+.walk-status-pill.still .pulse-dot {
+  background: var(--muted);
+  animation: none;
+}
+
+/* Activity Mode Switcher */
+.activity-mode-bar {
+  background: var(--surface);
+  border: 1px solid var(--light-border);
+  border-radius: var(--radius-full);
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.mode-bar-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding-left: 8px;
+}
+
+.mode-pill-group {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.mode-pill {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 6px 4px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--charcoal);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-main);
+  text-align: center;
+}
+
+.mode-pill:hover {
+  background: var(--sage-mist);
+}
+
+.mode-pill.active {
+  background: var(--sage-primary);
+  color: white;
+  box-shadow: 0 2px 6px rgba(62, 102, 79, 0.2);
+}
+
+.mode-pill.active.running-active {
+  background: var(--terracotta);
+  box-shadow: 0 2px 6px rgba(229, 143, 101, 0.25);
+}
+
+.mode-pill.active.still-active {
+  background: var(--charcoal);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .walk-status-pill.paused .pulse-dot {

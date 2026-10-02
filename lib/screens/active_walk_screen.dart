@@ -128,7 +128,13 @@ class _ActiveWalkScreenState extends State<ActiveWalkScreen> {
           title: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: isPaused ? AppColors.accentAmberSoft : AppColors.primarySoft,
+              color: isPaused
+                  ? AppColors.accentAmberSoft
+                  : (widget.trackingService.currentActivity == MovementActivity.running
+                      ? AppColors.accentPeachSoft
+                      : (widget.trackingService.currentActivity == MovementActivity.stationary
+                          ? AppColors.surfaceWarm
+                          : AppColors.primarySoft)),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -139,16 +145,28 @@ class _ActiveWalkScreenState extends State<ActiveWalkScreen> {
                   height: 8,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isPaused ? AppColors.accentAmber : AppColors.primary,
+                    color: isPaused
+                        ? AppColors.accentAmber
+                        : (widget.trackingService.currentActivity == MovementActivity.running
+                            ? AppColors.accentPeach
+                            : (widget.trackingService.currentActivity == MovementActivity.stationary
+                                ? AppColors.textMuted
+                                : AppColors.primary)),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  isPaused ? "Walk Paused • Resting" : "Active Walk • Mindful Pace",
+                  widget.trackingService.activityLabel,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isPaused ? AppColors.accentAmber : AppColors.primary,
+                    color: isPaused
+                        ? AppColors.accentAmber
+                        : (widget.trackingService.currentActivity == MovementActivity.running
+                            ? AppColors.accentPeach
+                            : (widget.trackingService.currentActivity == MovementActivity.stationary
+                                ? AppColors.textDark
+                                : AppColors.primary)),
                   ),
                 ),
               ],

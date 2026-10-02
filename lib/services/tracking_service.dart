@@ -15,7 +15,15 @@ enum WalkStatus {
   stopped,
 }
 
-/// Core walking tracker service.
+enum MovementActivity {
+  stationary,    // < 0.8 km/h: user stopped, standing still, or catching breath
+  walking,       // 0.8 - 5.5 km/h: natural mindful walk
+  briskWalking,  // 5.5 - 8.0 km/h: active purposeful walk
+  running,       // 8.0 - 18.0 km/h: jogging / running
+  vehicleSpeed,  // > 18.0 km/h: vehicle detected, discarded for accuracy
+}
+
+/// Core walking tracker service with precise speed & movement activity detection.
 ///
 /// PRIVACY GUARANTEE:
 /// - GPS coordinates are used exclusively in real-time to compute distance deltas.
@@ -28,6 +36,25 @@ class TrackingService extends ChangeNotifier {
   bool get isTracking => _status == WalkStatus.tracking;
   bool get isPaused => _status == WalkStatus.paused;
   bool get isActive => _status == WalkStatus.tracking || _status == WalkStatus.paused;
+
+  MovementActivity _currentActivity = MovementActivity.stationary;
+  MovementActivity get currentActivity => _currentActivity;
+
+  String get activityLabel {
+    if (isPaused) return "Paused • Resting 🍵";
+    switch (_currentActivity) {
+      case MovementActivity.stationary:
+        return "Standing Still 🛑";
+      case MovementActivity.walking:
+        return "Mindful Walk 🌱";
+      case MovementActivity.briskWalking:
+        return "Brisk Pace 🍃";
+      case MovementActivity.running:
+        return "Running / Jogging 🏃";
+      case MovementActivity.vehicleSpeed:
+        return "Vehicle Speed Ignored ⚠️";
+    }
+  }
 
   // Real-time walk metrics
   double _cumulativeDistanceMeters = 0.0;
@@ -61,6 +88,7 @@ class TrackingService extends ChangeNotifier {
   StreamSubscription<Position>? _positionSubscription;
   Timer? _tickerTimer;
   int _insightTimerSeconds = 0;
+  int _stationarySecondsCounter = 0;
 
   /// Checks and requests location permissions.
   Future<bool> checkAndRequestPermission() async {
@@ -103,6 +131,7 @@ class TrackingService extends ChangeNotifier {
     _userWeightKg = userWeightKg;
     _cumulativeDistanceMeters = 0.0;
     _currentSpeedKmh = 0.0;
+    _currentActivity = MovementActivity.stationary;
     _duration = Duration.zero;
     _caloriesBurned = 0.0;
     _latestMilestone = null;
@@ -113,11 +142,12 @@ class TrackingService extends ChangeNotifier {
     _walkStartTime = DateTime.now();
     _status = WalkStatus.tracking;
     _insightTimerSeconds = 0;
+    _stationarySecondsCounter = 0;
 
-    // Start GPS position stream
+    // Start GPS position stream with high accuracy and 2.5m minimum displacement
     const locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: 3, // Minimal 3-meter threshold to prevent stationary jitter
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: 2, // Minimal 2-meter threshold
     );
 
     _positionSubscription = Geolocator.getPositionStream(
@@ -136,8 +166,8 @@ class TrackingService extends ChangeNotifier {
   void _onPositionUpdate(Position position) {
     if (_status != WalkStatus.tracking) return;
 
-    // Reject weak accuracy readings (> 35m) to prevent GPS bounce
-    if (position.accuracy > 35) return;
+    // Strict accuracy filter: reject readings worse than 25m
+    if (position.accuracy > 25.0) return;
 
     final now = DateTime.now();
 
@@ -149,7 +179,6 @@ class TrackingService extends ChangeNotifier {
         position.longitude,
       );
 
-      // Sanity check: filter out teleports or driving speeds (> 20 km/h = ~5.5 m/s)
       final secondsDiff = _lastPositionTime != null
           ? now.difference(_lastPositionTime!).inMilliseconds / 1000.0
           : 1.0;
@@ -157,18 +186,39 @@ class TrackingService extends ChangeNotifier {
       final calculatedSpeedMps = secondsDiff > 0 ? (deltaMeters / secondsDiff) : 0.0;
       final calculatedSpeedKmh = calculatedSpeedMps * 3.6;
 
-      if (calculatedSpeedKmh <= 18.0 && deltaMeters > 1.5) {
-        final previousDistance = _cumulativeDistanceMeters;
+      // Extract hardware speed from GPS chipset Doppler effect if valid
+      double rawSpeedKmh = calculatedSpeedKmh;
+      if (position.speed >= 0.25) {
+        rawSpeedKmh = position.speed * 3.6;
+      }
+
+      // Check if user is stationary (standing still / deadband)
+      if (rawSpeedKmh < 0.8 || deltaMeters < 2.0) {
+        _currentSpeedKmh = 0.0;
+        _currentActivity = MovementActivity.stationary;
+        // DO NOT add deltaMeters when standing still!
+      } else if (rawSpeedKmh > 18.0) {
+        // Vehicle speed detected: discard displacement
+        _currentActivity = MovementActivity.vehicleSpeed;
+        _currentSpeedKmh = 0.0;
+      } else {
+        // Legitimate human walking or running displacement
         _cumulativeDistanceMeters += deltaMeters;
 
-        // Smooth speed update
-        if (position.speed >= 0.2) {
-          _currentSpeedKmh = (_currentSpeedKmh * 0.4) + (position.speed * 3.6 * 0.6);
+        // Smooth speed with exponential moving average
+        _currentSpeedKmh = (_currentSpeedKmh * 0.3) + (rawSpeedKmh * 0.7);
+
+        // Classify activity precisely
+        if (_currentSpeedKmh >= 8.0) {
+          _currentActivity = MovementActivity.running;
+        } else if (_currentSpeedKmh >= 5.5) {
+          _currentActivity = MovementActivity.briskWalking;
         } else {
-          _currentSpeedKmh = (_currentSpeedKmh * 0.5) + (calculatedSpeedKmh * 0.5);
+          _currentActivity = MovementActivity.walking;
         }
 
         // Check for 500m milestone
+        final previousDistance = _cumulativeDistanceMeters - deltaMeters;
         final milestone = MilestoneService.checkMilestone(
           currentDistanceMeters: _cumulativeDistanceMeters,
           previousDistanceMeters: previousDistance,
@@ -192,12 +242,22 @@ class TrackingService extends ChangeNotifier {
     if (_status == WalkStatus.tracking) {
       _duration += const Duration(seconds: 1);
 
-      // Calculate incremental calories for 1 second of active walking
+      // Decay speed if no GPS movement for consecutive seconds
+      if (_currentActivity == MovementActivity.stationary) {
+        _stationarySecondsCounter++;
+        if (_stationarySecondsCounter >= 3) {
+          _currentSpeedKmh = 0.0;
+        }
+      } else {
+        _stationarySecondsCounter = 0;
+      }
+
+      // Calculate incremental calories based on exact speed & state
       final incrementalCals = CalorieService.calculateIncrementalCalories(
         weightKg: _userWeightKg,
         currentSpeedKmh: _currentSpeedKmh,
         stepDuration: const Duration(seconds: 1),
-        isPaused: false,
+        isPaused: _currentActivity == MovementActivity.stationary,
       );
       _caloriesBurned += incrementalCals;
 
@@ -234,6 +294,7 @@ class TrackingService extends ChangeNotifier {
     if (_status == WalkStatus.tracking) {
       _status = WalkStatus.paused;
       _currentSpeedKmh = 0.0;
+      _currentActivity = MovementActivity.stationary;
       _currentInsight = MilestoneService.getRestInsight(DateTime.now().minute);
       notifyListeners();
     }
@@ -296,7 +357,7 @@ class TrackingService extends ChangeNotifier {
     if (cumulativeDistanceKm <= 0.05 || _duration.inSeconds < 10) return "--'--\"";
     final totalMinutes = _duration.inSeconds / 60.0;
     final pacePerKm = totalMinutes / cumulativeDistanceKm;
-    if (pacePerKm > 60 || pacePerKm < 3) return "--'--\"";
+    if (pacePerKm > 60 || pacePerKm < 2.5) return "--'--\"";
     final min = pacePerKm.floor();
     final sec = ((pacePerKm - min) * 60).round();
     return "$min'${sec.toString().padLeft(2, '0')}\"";
